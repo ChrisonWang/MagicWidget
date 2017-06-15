@@ -1,0 +1,461 @@
+<head>
+    <title>模板</title>
+    <link type="text/css" href="css/swiper-3.4.2.min.css"  rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="css/tml.css">
+    <link rel="stylesheet" type="text/css" href="css/font-face/iconfont.css">
+
+
+    <!--拖动及排序所需js  begin  https://github.com/mjsarfatti/nestedSortable/-->
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/swiper-3.4.2.jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="js/jquery.mjs.nestedSortable.js"></script>
+    <!--拖动及排序所需js  end-->
+
+    <!--模板引擎js  begin-->
+    <script type="text/javascript" src="js/template-web.js"></script>
+    <!--模板引擎js  end-->
+
+    <!--<script type="text/javascript" src="underscore.js"></script>  这个是之前用的模版引擎，但是据说效率没百度artTemplate效率高，就不用了-->
+    <script>
+        $(function () {
+
+            /*  ================挂件展示区================= begin  */
+            //步骤一：把<% %>  替换成 <!--[ ]--> (也可不替换，直接使用<% %>  也可使用简洁模式{{}}（这个跟laravel有冲突） 见http://blog.csdn.net/jiazimo/article/details/39232425 或百度artTemplate)
+                    var rule = template.defaults.rules[0];
+            rule.test = new RegExp(rule.test.source.replace('<%', '<\\\!\\\-\\\-\\\[').replace('%>', '\\\]\\\-\\\->'));
+
+            //步骤二：初始化模板数据，并展现到前台 （三个挂件ID_aaa  ID_bbb ID_ccc）
+            var data = {
+                tmp : [
+                    {
+                        'tpl_id':'ID_aaa',
+                        'list':[{'src':'http://demo2.ways100.com/images/82/5b/bd/cdd45f98c49b893b5b4ca034f0c03edccbc5e1f5.png'}],
+                        'data':'{"tpl_id":"ID_aaa","list":[{"src":"http://demo2.ways100.com/images/82/5b/bd/cdd45f98c49b893b5b4ca034f0c03edccbc5e1f5.png"}]}'
+                    },
+                    {
+                        'tpl_id':'ID_bbb',
+                        'list':[],
+                        'data':'{"tpl_id":"ID_aaa","list":[]}'
+                    },
+                    {
+                        'tpl_id':'ID_ccc',
+                        'list':[{'src':'https://pic.cnblogs.com/face/585973/20170424120720.png'}],
+                        'data':'{"tpl_id":"ID_aaa","list":[{"src":"https://pic.cnblogs.com/face/585973/20170424120720.png"}]}'
+                    },
+                ]
+            };
+            //步骤三：通过js模板加载所有挂件
+            $('#content').html(template('testTemp', data));
+            //步骤四：使挂件可拖拽
+            $('.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: '.tml_box_div',
+                helper:	'clone',
+                items: '.tml_box_li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 1,  //设置为1：规定li里的子dom不可拖到其他li的内部
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: true
+            });
+//            $('.disclose').on('click', function() {
+//                $(this).closest('li').toggleClass('mjs-nestedSortable-collapsed').toggleClass('mjs-nestedSortable-expanded');
+//            });
+            /*  ================挂件展示区================= end */
+
+            /*  ================挂件编辑区：================begin */
+            //编辑挂件ID_aaa
+            $('#update_aaa').click(function () {
+                var aaa_json = $('#ID_aaa').json();
+                $('#ID_aaa').find('img').attr('src',$('#ID_aaa_img').val());
+                aaa_json.list[0].src = $('#ID_aaa_img').val();
+                $('#ID_aaa').attr('data',JSON.stringify(aaa_json));
+                alert(JSON.stringify(aaa_json));
+            });
+            //编辑挂件ID_ccc
+            $('#update_ccc').click(function () {
+                var ccc_json = $('#ID_ccc').json();
+                $('#ID_ccc').find('img').attr('src',$('#ID_ccc_img').val());
+                ccc_json.list[0].src = $('#ID_ccc_img').val();
+                $('#ID_ccc').attr('data',JSON.stringify(ccc_json));
+                alert(JSON.stringify(ccc_json));
+            });
+            //保存并预览
+            $('#preview').click(function(){
+                $('.sortable li').each(function (i) {
+                    data['tmp'][i]['tpl_id'] = $(this).attr('id');
+                    data['tmp'][i]['list'] =  $('#'+$(this).attr('id')).json().list;
+                    data['tmp'][i]['data'] = $(this).attr('data');
+                });
+                alert('将该数据存入后台，下次打开加载该数据，就完成了模板功能，数据：'+JSON.stringify(data));
+                //预览  begin
+                $('#content2').html(template('testTemp2', data));
+                //预览  end
+            });
+            /*  ================挂件编辑区：================end */
+
+            //            轮播加载
+            var swiper = new Swiper('.swiper-container', {
+                pagination: '.swiper-pagination',
+                paginationClickable: true
+            });
+
+        });
+
+        //字符串转json
+        $.fn.json = function(data){
+            return data? this.attr('data',JSON.stringify(data)): JSON.parse(this.attr('data')||'{}');
+        };
+    </script>
+</head>
+<body>
+<!--============================挂件展示区：============================<br/>-->
+<div class="panel-body text-center">
+    <div id="content"></div>
+    <script id="testTemp" type="text/html">
+        <ol class="sortable">
+            <!--[ for(var i in tmp){ ]-->
+            <li class="tml_box_li" id="<!--[= tmp[i]['tpl_id'] ]-->" data="<!--[= tmp[i]['data'] ]-->" style="display: none;">
+                <div class="tml_box_div">
+                    <span class="tml_mv iconfont">&#xe622;</span>
+                    <span class="disclose"><!--[= tmp[i]['tpl_id'] ]--></span>
+                    <!--[ for(var j in tmp[i]['list']){ ]-->
+                    <!--[ if(tmp[i]['list'][j]['src']){ ]-->
+                    <img width="220" height="150" src="<!--[= tmp[i]['list'][j]['src'] ]-->">
+                    <!--[ } ]-->
+                    <!--[ } ]-->
+                </div>
+            </li>
+            <!--[ } ]-->
+
+            <!--轮播挂件-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                <span class="tml_mv iconfont">&#xe622;</span>
+                <div class="swiper-container">
+                    <div class="swiper-wrapper sw_cont">
+                        <div class="swiper-slide"><img src="images/a.jpg"></div>
+                        <div class="swiper-slide"><img src="images/b.jpg"></div>
+                        <div class="swiper-slide"><img src="images/c.jpg"></div>
+                    </div>
+                    <!-- Add Pagination -->
+                    <div class="swiper-pagination"></div>
+                </div>
+
+                </div>
+            </li>
+
+            <!--挂件模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+
+                </div>
+            </li>
+
+            <!--搜索模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+                    <div class="search_body">
+                        <div class="sh_box">
+                            <input type="text" placeholder="搜索"/>
+                            <a href="#" class="sh_btn"></a>
+                        </div>
+                    </div>
+
+                </div>
+            </li>
+
+            <!--图片模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+
+                    <div class="img_tml imhr_pc">
+                        <ul class="imgt_ul">
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="img_tml imht_pad">
+                        <ul class="imgt_ul ">
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="img_tml imht_pad" style="margin-top: .1rem">
+                        <ul class="imgt_ul ">
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                            <li class="imgt_li">
+                                <a href="#" class="imgt_box"><img src="images/csimg.jpg"></a>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </li>
+
+            <!--图文模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+
+                    <div class="imgtxt_tml imgtxt_pc">
+                        <ul class="imgtxt_ul">
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="imgtxt_tml imgtxt_pad">
+                        <ul class="imgtxt_ul">
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="imgtxt_tml igt_three">
+                        <ul class="imgtxt_ul">
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="imgtxt_li">
+                                <a href="#" class="imgtxt_box">
+                                    <div class="imgtxtdiv_a"><img src="images/csimgb.jpg"></div>
+                                    <div class="imgtxtdiv_b">
+                                        <p>这是一个新的图文模块，可以在此处添加文字，在文字的左(右)边添加一张图片</p>
+                                    </div>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </li>
+
+            <!--视频模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+                    <div class="vedio_tml">
+                    <iframe height=498 width=510 src="http://player.youku.com/embed/XMTU0MDE3Mzk5Mg==" frameborder=0 allowfullscreen></iframe>
+                    </div>
+                </div>
+            </li>
+
+            <!--挂件模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+                    <div class="txt_tml">
+                        <ul class="tt_ul">
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!--pad && wap-->
+                    <div class="pd_waptt">
+                        <ul class="tt_ul">
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                        </ul>
+                        <ul class="tt_ul">
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                            <li class="tt_li">
+                                <p>这是一个新的文本模块，可以在此处添加文字</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                </div>
+            </li>
+
+            <!--表单模板-->
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <div class="tml_mask">&nbsp;</div>
+                    <span class="tml_mv iconfont">&#xe622;</span>
+                    <div class="form_use">
+                        <div class="fu_top">
+                            <div class="fu_name">
+                                <span class="fu_label">您的姓名</span>
+                                <input class="fu_input" type="text" placeholder="您的姓名" />
+                            </div>
+                            <div class="fu_tel">
+                                <span class="fu_label">您的电话</span>
+                                <input class="fu_input" type="text" placeholder="您的电话" />
+                            </div>
+                        </div>
+                        <div class="fu_email">
+                            <span class="fu_label">您的邮箱地址</span>
+                            <input class="fu_input" type="text" placeholder="您的邮箱地址" />
+                        </div>
+                        <div class="fu_ly">
+                            <span class="fu_label">留言</span>
+                            <textarea class="fu_input" type="text" placeholder="留言"></textarea>
+                        </div>
+                        <div class="fu_yzbox">
+                            <span class="fu_label">验证码</span>
+                            <input class="fu_input" type="text" placeholder="请输入验证码" />
+                            <input class="fu_yzm" type="text" placeholder="验证码" />
+                        </div>
+                        <div class="fu_btn">
+                            <a href="#" class="fu_btna">发送</a>
+                        </div>
+
+                    </div>
+                </div>
+            </li>
+
+        </ol>
+    </script>
+</div>
+
+<!--<br/>============================挂件编辑区：============================<br/>-->
+<!--<div style="border: solid 1px black">-->
+    <!--<div id="ID_aaa_edit">-->
+        <!--修改ID_aaa挂件的图片，新图片地址：<input id="ID_aaa_img" type="text" />-->
+        <!--<input type="button" id="update_aaa" value="更新ID_aaa挂件的数据" />-->
+    <!--</div>-->
+    <!--<div id="ID_ccc_edit">-->
+        <!--修改ID_ccc挂件的图片，新图片地址：<input id="ID_ccc_img" type="text" />-->
+        <!--<input type="button" id="update_ccc" value="更新ID_ccc挂件的数据" />-->
+    <!--</div>-->
+<!--</div>-->
+<!--<input type="button" id="preview" value="预览修改" ><br/>-->
+
+<!--<br/>============================预览区：============================<br/>-->
+<!--<div style="border: solid 1px black">-->
+    <!--<div class="panel-body text-center">-->
+        <!--<div id="content2"></div>-->
+        <!--<script id="testTemp2" type="text/html">-->
+            <!--<ol class="sortable2">-->
+                <!--&lt;!&ndash;[ for(var i in tmp){ ]&ndash;&gt;-->
+                <!--<li>-->
+                    <!--<div>-->
+                        <!--<span class="disclose">&lt;!&ndash;[= tmp[i]['tpl_id'] ]&ndash;&gt;</span>-->
+                        <!--&lt;!&ndash;[ for(var j in tmp[i]['list']){ ]&ndash;&gt;-->
+                        <!--&lt;!&ndash;[ if(tmp[i]['list'][j]['src']){ ]&ndash;&gt;-->
+                        <!--<img width="220" height="150" src="&lt;!&ndash;[= tmp[i]['list'][j]['src'] ]&ndash;&gt;">-->
+                        <!--&lt;!&ndash;[ } ]&ndash;&gt;-->
+                        <!--&lt;!&ndash;[ } ]&ndash;&gt;-->
+                    <!--</div>-->
+                <!--</li>-->
+                <!--&lt;!&ndash;[ } ]&ndash;&gt;-->
+            <!--</ol>-->
+        <!--</script>-->
+    <!--</div>-->
+<!--</div>-->
+
+</body>
+
+
+
+

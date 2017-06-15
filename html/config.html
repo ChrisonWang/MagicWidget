@@ -1,0 +1,235 @@
+<head>
+    <title>模板</title>
+    <link type="text/css" href="css/style.css"  rel="stylesheet" />
+    <link type="text/css" href="css/swiper-3.4.2.min.css"  rel="stylesheet" />
+    <link rel="stylesheet" type="text/css" href="css/tml.css">
+    <link rel="stylesheet" type="text/css" href="css/font-face/iconfont.css">
+
+    <!--模板配置css-->
+    <link rel="stylesheet" type="text/css" href="css/config.css">
+    <!--图片剪裁css-->
+    <link rel="stylesheet" type="text/css" href="css/cropper.css">
+    <link rel="stylesheet" type="text/css" href="css/cropperindex.css">
+
+
+    <!--拖动及排序所需js  begin  https://github.com/mjsarfatti/nestedSortable/-->
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/swiper-3.4.2.jquery.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="js/jquery.mjs.nestedSortable.js"></script>
+    <!--拖动及排序所需js  end-->
+
+    <!--图片剪裁js-->
+    <script type="text/javascript" src="js/upImg.js"></script>
+
+    <!--模板引擎js  begin-->
+    <script type="text/javascript" src="js/template-web.js"></script>
+    <!--模板引擎js  end-->
+
+    <!--<script type="text/javascript" src="underscore.js"></script>  这个是之前用的模版引擎，但是据说效率没百度artTemplate效率高，就不用了-->
+    <script>
+        $(function () {
+
+            /*  ================挂件展示区================= begin  */
+            //步骤一：把<% %>  替换成 <!--[ ]--> (也可不替换，直接使用<% %>  也可使用简洁模式{{}}（这个跟laravel有冲突） 见http://blog.csdn.net/jiazimo/article/details/39232425 或百度artTemplate)
+                    var rule = template.defaults.rules[0];
+            rule.test = new RegExp(rule.test.source.replace('<%', '<\\\!\\\-\\\-\\\[').replace('%>', '\\\]\\\-\\\->'));
+
+            //步骤二：初始化模板数据，并展现到前台 （三个挂件ID_aaa  ID_bbb ID_ccc）
+            var data = {
+                tmp : [
+                    {
+                        'tpl_id':'ID_aaa',
+                        'list':[{'src':'http://demo2.ways100.com/images/82/5b/bd/cdd45f98c49b893b5b4ca034f0c03edccbc5e1f5.png'}],
+                        'data':'{"tpl_id":"ID_aaa","list":[{"src":"http://demo2.ways100.com/images/82/5b/bd/cdd45f98c49b893b5b4ca034f0c03edccbc5e1f5.png"}]}'
+                    },
+                    {
+                        'tpl_id':'ID_bbb',
+                        'list':[],
+                        'data':'{"tpl_id":"ID_aaa","list":[]}'
+                    },
+                    {
+                        'tpl_id':'ID_ccc',
+                        'list':[{'src':'https://pic.cnblogs.com/face/585973/20170424120720.png'}],
+                        'data':'{"tpl_id":"ID_aaa","list":[{"src":"https://pic.cnblogs.com/face/585973/20170424120720.png"}]}'
+                    },
+                ]
+            };
+            //步骤三：通过js模板加载所有挂件
+            $('#content').html(template('testTemp', data));
+            //步骤四：使挂件可拖拽
+            $('.sortable').nestedSortable({
+                forcePlaceholderSize: true,
+                handle: '.tml_mv',
+                helper:	'clone',
+                items: '.tml_box_li',
+                opacity: .6,
+                placeholder: 'placeholder',
+                revert: 250,
+                tabSize: 25,
+                tolerance: 'pointer',
+                toleranceElement: '> div',
+                maxLevels: 1,  //设置为1：规定li里的子dom不可拖到其他li的内部
+                isTree: true,
+                expandOnHover: 700,
+                startCollapsed: true
+            });
+//            $('.disclose').on('click', function() {
+//                $(this).closest('li').toggleClass('mjs-nestedSortable-collapsed').toggleClass('mjs-nestedSortable-expanded');
+//            });
+            /*  ================挂件展示区================= end */
+
+            /*  ================挂件编辑区：================begin */
+            //编辑挂件ID_aaa
+            $('#update_aaa').click(function () {
+                var aaa_json = $('#ID_aaa').json();
+                $('#ID_aaa').find('img').attr('src',$('#ID_aaa_img').val());
+                aaa_json.list[0].src = $('#ID_aaa_img').val();
+                $('#ID_aaa').attr('data',JSON.stringify(aaa_json));
+                alert(JSON.stringify(aaa_json));
+            });
+            //编辑挂件ID_ccc
+            $('#update_ccc').click(function () {
+                var ccc_json = $('#ID_ccc').json();
+                $('#ID_ccc').find('img').attr('src',$('#ID_ccc_img').val());
+                ccc_json.list[0].src = $('#ID_ccc_img').val();
+                $('#ID_ccc').attr('data',JSON.stringify(ccc_json));
+                alert(JSON.stringify(ccc_json));
+            });
+            //保存并预览
+            $('#preview').click(function(){
+                $('.sortable li').each(function (i) {
+                    data['tmp'][i]['tpl_id'] = $(this).attr('id');
+                    data['tmp'][i]['list'] =  $('#'+$(this).attr('id')).json().list;
+                    data['tmp'][i]['data'] = $(this).attr('data');
+                });
+                alert('将该数据存入后台，下次打开加载该数据，就完成了模板功能，数据：'+JSON.stringify(data));
+                //预览  begin
+                $('#content2').html(template('testTemp2', data));
+                //预览  end
+            });
+            /*  ================挂件编辑区：================end */
+
+            var $url="http://192.168.0.110:63342/visualization/"   //后台接口地址，根据自己情况更改
+            upImg(1/1)
+        });
+
+        //字符串转json
+        $.fn.json = function(data){
+            return data? this.attr('data',JSON.stringify(data)): JSON.parse(this.attr('data')||'{}');
+        };
+    </script>
+</head>
+<body>
+<!--============================挂件展示区：============================<br/>-->
+
+<div class="editor-intro" style="display: none;">
+    <p class="help-title">操作说明</p>
+    <p class="help-subTitle">左边是您网站的缩略版,您可以试着进行以下操作：</p>
+    <ul class="help-content">
+        <li>
+            <span>将鼠标悬停任一模块，你会看到以下三个按钮</span><br>
+            <span>点击</span>
+            <div class="ico-fn"><span class="iconfont">&#xe61f;</span></div>
+            <span>可以在当前模块下方添加一个新模块。</span><br>
+            <span>点击</span>
+            <div class="ico-fn"><span class="iconfont ico-fn-del">&#xe679;</span></div>
+            <span>可以删除当前模块。</span><br>
+            <span>点击并拖拽</span>
+            <div class="icon-sort ico-fn"><span class="ico-fn-menu iconfont">&#xe622;</span></div>
+            <span>可以移动当前模块的位置。</span><br>
+        </li>
+        <li>用鼠标点击任一模块，可以编辑当前模块的内容。</li>
+    </ul>
+</div>
+
+<div class="panel-body text-center">
+    <div id="content"></div>
+    <script id="testTemp" type="text/html">
+
+
+        <!--图片挂件-->
+        <div class="cft_head">
+            <span class="cfth_a">编辑轮播模块</span>
+            <span class="cfth_b">拖拽<span class="iconfont">&#xe622;</span>可排序</span>
+        </div>
+        <div class="op_txt">
+            <span class="opt_left">请填写轮播图内容</span>
+            <span class="eo-tooltip eo-tooltip-default">
+                <span class="icon">?</span>
+                <div class="eo-tooltip-text" style="display: none;">
+                    <div slot="text">
+                        <p style="margin: 10px 0 15px;font-size: 14px;color: #000;">模块说明：</p>
+                        <p style="color: #9b9b9b;">轮播图模块支持展示1~10帧轮播图，并在轮播图片上填写文字内容。</p>
+                        <p style="margin: 20px 0 15px;font-size: 14px;color: #000;">图片推荐尺寸：</p>
+                        <p style="color: #9b9b9b;">按照推荐尺寸上传图片，可以获得最佳的页面展示效果。</p>
+                        <table>
+                            <tbody><tr>
+                                <td style="background: #f8f8f8;">所有图片</td>
+                                <td>宽度1920px，高度400~600px。</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <p style="color: #9b9b9b;">如果您的上传的图片尺寸不在这个范围内，可以上传后裁剪尺寸，否则可能会被拉伸或者压缩</p>
+                    </div>
+                </div>
+            </span>
+        </div>
+
+        <ol class="sortable">
+
+            <li class="tml_box_li">
+                <div class="tml_box_div">
+                    <span class="tml_mv iconfont">&#xe622;</span>
+
+                    <div class="config_tml">
+                        <div class="cft_body">
+                            <div class="cftb_left">
+                                <div id="content_img">
+                                    <form id="NewQyq">
+                                        <div class="SeeCont">
+                                            <div class="SeeImg image_container">
+                                                <img class="myimg" src='' />
+                                            </div>
+                                            <button class="TxText xzBtn" id="imgReplaceBtn" type="button">更换图片   </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="content_url">
+                                    <input type="text" placeholder="链接地址:" />
+                                </div>
+                            </div>
+
+                            <div class="cftb_right">
+                                <div class="text_contert">
+                                    <a href="#" class="txt_item tt_left"></a>
+                                    <a href="#" class="txt_item tt_center"></a>
+                                    <a href="#" class="txt_item tt_right"></a>
+                                    <a href="#" class="txt_item tt_morebig">特</a>
+                                    <a href="#" class="txt_item tt_big">大</a>
+                                    <a href="#" class="txt_item tt_mid">中</a>
+                                    <a href="#" class="txt_item tt_little">小</a>
+                                </div>
+                                <div class="text_add">
+                                    <textarea>
+
+                                    </textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+
+        </ol>
+        <div class="sub_foot">
+            <div class="sub_btn">保存</div>
+            <div class="sub_rest">取消</div>
+        </div>
+    </script>
+</div>
+</body>
+
+
+
+

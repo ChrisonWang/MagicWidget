@@ -1,0 +1,27 @@
+@charset "UTF-8";
+html{background:white}
+body,h1,h2,h3,h4,h5,h6,p,blockquote,pre,dl,dd,fieldset,form,input,select,textarea,button,figure{margin:0}
+ul,ol,menu{list-style:none;margin:0;padding:0}
+body{font-size:75%;line-height:1.5;font: 12px/1.5 "Helvetica Neue",Helvetica,Arial,"Hiragino Sans GB",\5FAE\8F6F\96C5\9ED1,tahoma,simsun,\5b8b\4f53;}
+a:hover{color: #E31436;text-decoration: none;}
+img{border: none;vertical-align: middle;}
+fieldset, a img, iframe{border: 0 none;}
+a{color: #676767;text-decoration: none;cursor: pointer;outline: none;}
+em, i{font-style: normal;}
+.main{background-color: #f6f6f6;}
+.count{width: 1090px;margin: 0 auto;}
+del{text-decoration: line-through;}
+.clear{clear: both;}
+table {border-collapse: collapse;border-spacing: 0;}
+input, select, button, textarea {font-size: 100%;font-family: inherit;outline: none;}
+thead {display: table-header-group;vertical-align: middle;border-color: inherit;}
+tr {display: table-row;vertical-align: inherit;border-color: inherit;}
+
+*, :before, :after {
+    box-sizing: border-box;
+}
+
+/*轮播挂件*/
+.sw_cont img{
+    width: 100%;
+}
